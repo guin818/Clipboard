@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>클립보드</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+    <header class="sticky top-0 z-30 backdrop-blur-md bg-slate-900/80 border-b border-slate-800 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-clipboard text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        클립보드
+                    </h1>
+                    <p class="text-xs text-slate-400"> 나만의 클립보드</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 flex flex-col gap-6">
+        
+        <!-- Input Card Section -->
+        <section class="bg-slate-800/60 backdrop-blur-sm border border-slate-700/60 rounded-2xl p-5 shadow-xl transition-all">
+            <form id="clip-form" class="flex flex-col gap-3">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <label for="clip-input" class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square text-indigo-400"></i> 새 내용 추가하기
+                    </label>
+                    <span class="text-xs text-slate-400">로컬스토리지 자동 저장</span>
+                </div>
+                <div class="relative">
+                    <textarea 
+                        id="clip-input" 
+                        rows="3" 
+                        placeholder="저장하고 싶은 내용을 적고 추가 버튼을 누르세요..."
+                        class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none text-sm md:text-base shadow-inner"
+                    ></textarea>
+                </div>
+                <div class="flex items-center justify-between pt-1">
+                    <div class="flex items-center gap-2 text-xs text-slate-400">
+                        <i class="fa-solid fa-circle-info text-indigo-400"></i> 카드를 클릭하면 클립보드에 복사됩니다.
+                    </div>
+                    <button 
+                        type="submit" 
+                        class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-6 py-2.5 rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 text-sm active:scale-95 cursor-pointer"
+                    >
+                        <i class="fa-solid fa-plus"></i> 추가
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Search & Utility Controls -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="relative w-full sm:w-72">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-search"></i>
+                </span>
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="저장된 내용 검색..."
+                    class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                >
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button 
+                    id="export-btn" 
+                    title="백업 다운로드"
+                    class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                    <i class="fa-solid fa-download text-indigo-400"></i> 백업
+                </button>
+                <label 
+                    title="백업 복원"
+                    class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                    <i class="fa-solid fa-upload text-violet-400"></i> 복원
+                    <input type="file" id="import-file" accept=".json" class="hidden">
+                </label>
+                <button 
+                    id="clear-all-btn" 
+                    class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3.5 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                    <i class="fa-solid fa-trash-can"></i> 전체 삭제
+                </button>
+            </div>
+        </div>
+
+        <section id="clipboard-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-12">
+            <!-- Dynamic Cards will be injected here -->
+        </section>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden flex-col items-center justify-center py-16 text-center">
+            <div class="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-500 text-2xl mb-4">
+                <i class="fa-solid fa-box-open"></i>
+            </div>
+            <h3 class="text-base font-semibold text-slate-300">저장된 클립보드가 없습니다</h3>
+            <p class="text-xs text-slate-500 mt-1">상단 입력창에 내용을 적고 추가 버튼을 눌러보세요!</p>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900 border border-slate-700 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-md">
+            <div id="toast-icon" class="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <span id="toast-msg" class="text-sm font-medium">클립보드에 복사되었습니다!</span>
+        </div>
+    </div>
+
+    <script>
+        // State Management - LocalStorage sync
+        let clips = JSON.parse(localStorage.getItem('my_clipboard_items') || '[]');
+        let searchQuery = '';
+
+        // DOM Elements
+        const clipForm = document.getElementById('clip-form');
+        const clipInput = document.getElementById('clip-input');
+        const clipboardGrid = document.getElementById('clipboard-grid');
+        const emptyState = document.getElementById('empty-state');
+        const searchInput = document.getElementById('search-input');
+        const clearAllBtn = document.getElementById('clear-all-btn');
+        const exportBtn = document.getElementById('export-btn');
+        const importFile = document.getElementById('import-file');
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toast-msg');
+
+        function saveToLocalStorage() {
+            localStorage.setItem('my_clipboard_items', JSON.stringify(clips));
+            updateUI();
+        }
+
+        function showToast(message, isError = false) {
+            const iconDiv = document.getElementById('toast-icon');
+            if (isError) {
+                iconDiv.className = "w-7 h-7 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs";
+                iconDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                iconDiv.className = "w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs";
+                iconDiv.innerHTML = '<i class="fa-solid fa-check"></i>';
+            }
+            toastMsg.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2000);
+        }
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('클립보드에 복사되었습니다!');
+                }).catch(() => {
+                    fallbackCopy(text);
+                });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('클립보드에 복사되었습니다!');
+                } else {
+                    showToast('복사에 실패했습니다.', true);
+                }
+            } catch (err) {
+                showToast('복사 기능을 지원하지 않습니다.', true);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // Add a text directly to clips array and localstorage
+        function addClipText(text) {
+            const trimmed = text.trim();
+            if (!trimmed) {
+                showToast('저장할 내용이 없습니다.', true);
+                return false;
+            }
+
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const newClip = {
+                id: 'clip_' + Date.now() + Math.random().toString(36).substr(2, 5),
+                text: trimmed,
+                date: dateStr
+            };
+
+            clips.unshift(newClip);
+            saveToLocalStorage();
+            showToast('로컬스토리지에 저장되었습니다!');
+            return true;
+        }
+
+        function updateUI() {
+            const filteredClips = clips.filter(clip => 
+                clip.text.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+
+            if (clips.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                clipboardGrid.innerHTML = '';
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+            }
+
+            if (filteredClips.length === 0) {
+                clipboardGrid.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-slate-500 text-sm">
+                        검색 결과가 없습니다.
+                    </div>
+                `;
+                return;
+            }
+
+            clipboardGrid.innerHTML = filteredClips.map((clip) => {
+                const escapedText = clip.text
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+
+                return `
+                    <div 
+                        class="group relative bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 hover:border-indigo-500/50 rounded-2xl p-5 flex flex-col justify-between shadow-md hover:shadow-indigo-500/10 transition-all duration-200 cursor-pointer select-none"
+                        onclick="handleCardClick(event, '${clip.id}')"
+                    >
+                        <div class="flex items-start justify-between gap-2 mb-3">
+                            <span class="text-[11px] font-medium text-slate-400 bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-700/50">
+                                ${clip.date}
+                            </span>
+                            <button 
+                                type="button"
+                                onclick="deleteClip(event, '${clip.id}')"
+                                class="text-slate-400 hover:text-rose-400 bg-slate-900/40 hover:bg-rose-500/10 p-2 rounded-xl transition-all cursor-pointer opacity-80 group-hover:opacity-100"
+                                title="삭제"
+                            >
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+
+                        <div class="bg-slate-900/90 rounded-xl p-3.5 border border-slate-700/60 mb-3 max-h-40 overflow-y-auto">
+                            <p class="text-slate-200 text-sm whitespace-pre-wrap break-words leading-relaxed font-normal">${escapedText}</p>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-700/40 text-xs text-slate-400 group-hover:text-indigo-400 transition-colors">
+                            <span class="flex items-center gap-1">
+                                <i class="fa-regular fa-copy"></i> 클릭하여 복사
+                            </span>
+                            <span class="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-medium text-indigo-400">
+                                복사됨!
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.handleCardClick = function(event, id) {
+            if (event.target.closest('button')) return;
+
+            const clip = clips.find(c => c.id === id);
+            if (clip) {
+                copyToClipboard(clip.text);
+            }
+        };
+
+        window.deleteClip = function(event, id) {
+            event.stopPropagation();
+            clips = clips.filter(c => c.id !== id);
+            saveToLocalStorage();
+            showToast('항목이 삭제되었습니다.');
+        };
+
+        // Form submit handler
+        clipForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = clipInput.value;
+            if (addClipText(text)) {
+                clipInput.value = '';
+            }
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            updateUI();
+        });
+
+        clearAllBtn.addEventListener('click', () => {
+            if (clips.length === 0) return;
+            if (confirm('저장된 모든 클립보드 항목을 삭제하시겠습니까?')) {
+                clips = [];
+                saveToLocalStorage();
+                showToast('전체 항목이 삭제되었습니다.');
+            }
+        });
+
+        exportBtn.addEventListener('click', () => {
+            if (clips.length === 0) {
+                showToast('백업할 데이터가 없습니다.', true);
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(clips, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `clipboard_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('백업 파일이 다운로드되었습니다.');
+        });
+
+        importFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const imported = JSON.parse(event.target.result);
+                    if (Array.isArray(imported)) {
+                        clips = imported;
+                        saveToLocalStorage();
+                        showToast('백업이 성공적으로 복원되었습니다!');
+                    } else {
+                        showToast('올바른 백업 파일이 아닙니다.', true);
+                    }
+                } catch (err) {
+                    showToast('파일을 읽는 중 오류가 발생했습니다.', true);
+                }
+                importFile.value = '';
+            };
+            reader.readAsText(file);
+        });
+
+        // Initialize UI
+        updateUI();
+    </script>
+</body>
+</html>
